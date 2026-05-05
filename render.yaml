@@ -1,0 +1,15 @@
+services:
+  - type: pserv
+    name: pet-shelter-db-docker
+    runtime: docker
+    envVars:
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+      - key: POSTGRES_DB
+        value: pet_shelter
+    disk:
+      name: postgres-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 1
