@@ -16,7 +16,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponceBuilderInterceptor());
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: process.env.VITE_FRONTEND ?? 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
