@@ -43,19 +43,22 @@ export class AccessoriesService {
     const product = await this.prisma.product.create({
       data: {
         name: dto.name,
-        description: dto.description,
+        description: dto.description ?? '',
         price: dto.price,
         stock: dto.stock,
         images: dto.images || [],
         categoryId: dto.categoryId,
       },
-      include: { category: true },
+    });
+
+    const category = await this.prisma.category.findUnique({
+      where: { id: product.categoryId },
     });
 
     return {
       id: product.id,
       name: product.name,
-      category: product.category.name,
+      category: category?.name ?? '',
       categoryId: product.categoryId,
       price: product.price.toString(),
       description: product.description,
@@ -66,23 +69,35 @@ export class AccessoriesService {
   }
 
   async update(id: number, dto: UpdateAccessoryDto) {
+    const updateData: {
+      name?: string;
+      description?: string;
+      price?: number;
+      stock?: number;
+      images?: string[];
+      categoryId?: number;
+    } = {};
+
+    if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.description !== undefined) updateData.description = dto.description;
+    if (dto.price !== undefined) updateData.price = dto.price;
+    if (dto.stock !== undefined) updateData.stock = dto.stock;
+    if (dto.images !== undefined) updateData.images = dto.images;
+    if (dto.categoryId !== undefined) updateData.categoryId = dto.categoryId;
+
     const product = await this.prisma.product.update({
       where: { id },
-      data: {
-        name: dto.name,
-        description: dto.description,
-        price: dto.price,
-        stock: dto.stock,
-        images: dto.images,
-        categoryId: dto.categoryId,
-      },
-      include: { category: true },
+      data: updateData,
+    });
+
+    const category = await this.prisma.category.findUnique({
+      where: { id: product.categoryId },
     });
 
     return {
       id: product.id,
       name: product.name,
-      category: product.category.name,
+      category: category?.name ?? '',
       categoryId: product.categoryId,
       price: product.price.toString(),
       description: product.description,
