@@ -1,25 +1,26 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
+  Get,
+  Param,
   ParseIntPipe,
-  UseInterceptors,
+  Patch,
+  Post,
+  Query,
   UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { Role } from '@prisma/client';
+import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
+import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { DogsService } from './dog.service';
 import { CreateDogDto } from './dto/create-dog.dto';
 import { UpdateDogDto } from './dto/update-dog.dto';
-import { JwtAuthGuard } from '../common/guards/jwt.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 
 @Controller('dogs')
 export class DogsController {
@@ -29,8 +30,8 @@ export class DogsController {
   ) {}
 
   @Get()
-  findAll() {
-    return this.dogsService.findAll();
+  findAll(@Query('all') all?: string) {
+    return this.dogsService.findAll(all === 'true');
   }
 
   @Get(':id')
@@ -43,7 +44,7 @@ export class DogsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @UseInterceptors(FilesInterceptor('images'))
   async create(
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files: Express.Multer.File[] = [],
     @Body() createDogDto: CreateDogDto,
   ) {
     const uploadPromises = files.map((file) =>
@@ -57,7 +58,7 @@ export class DogsController {
       ...createDogDto,
       age: Number(createDogDto.age),
       breedId: Number(createDogDto.breedId),
-      images: imageUrls,
+      images: imageUrls.length > 0 ? imageUrls : createDogDto.images,
     });
   }
 
@@ -80,7 +81,7 @@ export class DogsController {
       imageUrls = results.map((res) => res.secure_url);
     }
 
-    const dataToUpdate: any = {
+    const dataToUpdate: Partial<UpdateDogDto & { images?: string[] }> = {
       ...updateDogDto,
       description: updateDogDto.description,
       age: updateDogDto.age ? Number(updateDogDto.age) : undefined,
@@ -93,5 +94,12 @@ export class DogsController {
     }
 
     return this.dogsService.update(id, dataToUpdate);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.dogsService.remove(id);
   }
 }

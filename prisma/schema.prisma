@@ -8,27 +8,31 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
-  orders    Order[]
-  adoptionRequests  AdoptionRequest[]
+  id                 Int               @id @default(autoincrement())
+  email              String            @unique
+  password           String
+  role               Role              @default(USER)
+  phone              String?
+  experience         String?
+  message            String?           @db.Text
+  orders             Order[]
+  adoptionRequests   AdoptionRequest[]
+  walkRequests       WalkRequest[]
   hashedRefreshToken String?
-  createdAt DateTime @default(now())
+  createdAt          DateTime          @default(now())
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   description String
-  price       Decimal  @db.Decimal(10, 2)
-  stock       Int      @default(0)
+  price       Decimal     @db.Decimal(10, 2)
+  stock       Int         @default(0)
   images      String[]
   categoryId  Int
-  category    Category @relation(fields: [categoryId], references: [id])
+  category    Category    @relation(fields: [categoryId], references: [id])
   orderItems  OrderItem[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime    @default(now())
 }
 
 model Category {
@@ -58,26 +62,27 @@ model OrderItem {
 }
 
 model Dog {
-  id          Int      @id @default(autoincrement())
-  name        String
-  age         Int?
-  gender      Gender
-  description String?
-  weight      Float?
-  traits      Trait[]  @relation("DogTraits")
-  images      String[]
-  breedId     Int
-  breed       Breed    @relation(fields: [breedId], references: [id])
-  adoptionRequests  AdoptionRequest[]
-  status      DogStatus @default(AVAILABLE)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               Int               @id @default(autoincrement())
+  name             String
+  age              Int?
+  gender           Gender
+  description      String?
+  weight           Float?
+  traits           Trait[]           @relation("DogTraits")
+  images           String[]
+  breedId          Int
+  breed            Breed             @relation(fields: [breedId], references: [id])
+  adoptionRequests AdoptionRequest[]
+  walkRequests     WalkRequest[]
+  status           DogStatus         @default(AVAILABLE)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Breed {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  dogs  Dog[]
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  dogs Dog[]
 }
 
 enum Gender {
@@ -94,9 +99,9 @@ enum DogStatus {
 }
 
 model Trait {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  dogs  Dog[]  @relation("DogTraits")
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  dogs Dog[]  @relation("DogTraits")
 }
 
 enum Role {
@@ -113,21 +118,41 @@ enum OrderStatus {
 }
 
 model AdoptionRequest {
-  id         Int      @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   fullName   String
   phone      String
   email      String
-  experience String   @db.Text
-  message    String?  @db.Text
-  
-  dogId      Int
-  dog        Dog      @relation(fields: [dogId], references: [id])
-  
-  userId     Int?
-  user       User?    @relation(fields: [userId], references: [id])
+  experience String  @db.Text
+  message    String? @db.Text
 
-  status     AdoptionStatus @default(NEW)
-  createdAt  DateTime @default(now())
+  dogId Int
+  dog   Dog @relation(fields: [dogId], references: [id])
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  status    AdoptionStatus @default(NEW)
+  createdAt DateTime       @default(now())
+}
+
+model WalkRequest {
+  id         Int     @id @default(autoincrement())
+  fullName   String
+  phone      String
+  email      String
+  date       String
+  returnDate String?
+  time       String?
+  returnTime String?
+  message    String? @db.Text
+
+  dogId Int
+  dog   Dog @relation(fields: [dogId], references: [id])
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 enum AdoptionStatus {

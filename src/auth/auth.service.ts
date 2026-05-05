@@ -101,8 +101,10 @@ export class AuthService {
       await this.updateRefreshToken(user.id, tokens.refreshToken);
 
       return tokens;
-    } catch (error) {
-      throw new UnauthorizedException('Session expired. Please log in again.');
+    } catch (err) {
+      throw new UnauthorizedException(
+        `Session expired. Please log in again, ${err}`,
+      );
     }
   }
 

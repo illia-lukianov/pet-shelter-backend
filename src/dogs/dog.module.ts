@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { DogsService } from './dog.service';
+import { CloudinaryModule } from '../common/cloudinary/cloudinary.module';
+import { PrismaModule } from '../common/prisma/prisma.module';
 import { DogsController } from './dog.controller';
-import { PrismaService } from '../common/prisma/prisma.service';
-import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
+import { DogsService } from './dog.service';
 
 @Module({
+  imports: [PrismaModule, CloudinaryModule],
   controllers: [DogsController],
-  providers: [DogsService, PrismaService, CloudinaryService],
+  providers: [DogsService],
 })
 export class DogsModule {}

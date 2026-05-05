@@ -12,19 +12,33 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    const lastRequest = await this.prisma.adoptionRequest.findFirst({
-      where: {
-        OR: [{ userId }, { email: user.email }],
-      },
+    const lastAdoptionRequest = await this.prisma.adoptionRequest.findFirst({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
     });
-    console.log("🚀 ~ UserService ~ getAdoptionPreset ~ lastRequest:", lastRequest)
+
+    const lastWalkRequest = await this.prisma.walkRequest.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const fullName =
+      lastAdoptionRequest?.fullName ||
+      lastWalkRequest?.fullName ||
+      user.email.split('@')[0];
+    const phone =
+      lastAdoptionRequest?.phone || lastWalkRequest?.phone || user.phone || '';
 
     return {
-      fullName: lastRequest?.fullName || user.email.split('@')[0],
-      phone: lastRequest?.phone || '',
+      fullName,
+      phone,
       email: user.email,
-      experience: lastRequest?.experience || '',
+      experience: lastAdoptionRequest?.experience || user.experience || '',
+      message:
+        lastAdoptionRequest?.message ||
+        lastWalkRequest?.message ||
+        user.message ||
+        '',
     };
   }
 }

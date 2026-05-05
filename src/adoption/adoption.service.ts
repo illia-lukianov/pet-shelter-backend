@@ -15,7 +15,7 @@ export class AdoptionRequestService {
       throw new NotFoundException(`Собаку з ID ${dto.dogId} не знайдено`);
     }
 
-    return this.prisma.adoptionRequest.create({
+    const adoptionRequest = await this.prisma.adoptionRequest.create({
       data: {
         fullName: dto.fullName,
         email: dto.email,
@@ -29,6 +29,19 @@ export class AdoptionRequestService {
         dog: true,
       },
     });
+
+    if (userId) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          phone: dto.phone,
+          experience: dto.experience,
+          message: dto.message || null,
+        },
+      });
+    }
+
+    return adoptionRequest;
   }
 
   async findAll() {
@@ -38,6 +51,23 @@ export class AdoptionRequestService {
         user: { select: { email: true } },
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateStatus(id: number, status: string) {
+    return this.prisma.adoptionRequest.update({
+      where: { id },
+      data: { status: status as any },
+      include: {
+        dog: { select: { name: true } },
+        user: { select: { email: true } },
+      },
+    });
+  }
+
+  async remove(id: number) {
+    return this.prisma.adoptionRequest.delete({
+      where: { id },
     });
   }
 }

@@ -21,8 +21,9 @@ export class DogsService {
     });
   }
 
-  async findAll() {
+  async findAll(includeAll = false) {
     return this.prisma.dog.findMany({
+      where: includeAll ? undefined : { status: 'AVAILABLE' },
       include: { breed: true, traits: true },
     });
   }
@@ -36,18 +37,22 @@ export class DogsService {
     return dog;
   }
 
-  async update(id: number, updateDogDto: UpdateDogDto) {
+  async update(id: number, updateDogDto: Partial<UpdateDogDto>) {
     const { traitIds, ...dogData } = updateDogDto;
+
+    const updatePayload: Record<string, unknown> = {
+      ...dogData,
+    };
+
+    if (traitIds) {
+      updatePayload.traits = {
+        set: traitIds.map((id) => ({ id })),
+      };
+    }
 
     return this.prisma.dog.update({
       where: { id },
-      data: {
-        ...dogData,
-        traits: {
-          // 'set' очищує старі зв'язки і встановлює нові з масиву ID
-          set: traitIds?.map((id) => ({ id })) || [],
-        },
-      },
+      data: updatePayload,
       include: { breed: true, traits: true },
     });
   }
